@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from os import listdir
 from gensim.models import KeyedVectors
 import gensim
@@ -54,12 +55,12 @@ class ChatAid():
     output_tup = []
     for sim in sims_top:
         #找到像的句子後，去找那句的下一個回覆，即是我們要推薦的
-        #try:                                                    
+        #try:
         key = self.huge_df.loc[sim,"text"]
         answer = self.r.get(key)
         if (answer != None):
           output_tup.append((answer, self.huge_df.loc[sim,"number_to_end"]))
-        
+
     return (sorted(output_tup , key=lambda item: -item[1])[:10])
 
 if __name__ == "__main__":
