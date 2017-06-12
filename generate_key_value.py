@@ -13,22 +13,29 @@ def generatePairs():
       reader = csv.reader(csvFile)
       data_list = list(reader)
       if (len(data_list) > 1):
-        GENDER = data_list[1][5]
         for index in range(1, len(data_list)):
-          if ( index+1 < len(data_list) and data_list[index + 1][5] != GENDER ):
-            pairs[ data_list[index][2] ] = data_list[index+1][2] 
-            GENDER = data_list[index+1][5]
-    pickle.dump( pairs, open( "conversations_pairs/"+filename+".p", "wb" ) )
-
-  print("DONE")
+          GENDER = data_list[index][5]
+          #方法一： 如果m的下一句是f或是f的下一句是m才列為有效的對話
+          #if ( index+1 < len(data_list) and data_list[index + 1][5] != GENDER ):
+          #  pairs[ data_list[index][2] ] = data_list[index+1][2] 
+          #  GENDER = data_list[index+1][5]
+          if index + 1 < len(data_list) :
+            lookahead = 1
+            while  index + lookahead < len(data_list) and data_list[index + lookahead][5] == GENDER:
+              lookahead += 1 
+            if index + lookahead < len(data_list):
+              pairs[ data_list[index][2] ] = data_list[index+lookahead][2]
+    pickle.dump( pairs, open( "conversations_pairs/v2/"+filename+".p", "wb" ) )
+    print (filename+ " done")
 
 def saveToRedis():
   r = redis.StrictRedis(host='localhost', port=6379, db=0)
-  path = './conversations_pairs/'
+  path = './conversations_pairs/v2/'
   for filename in os.listdir(path):
     data = pickle.load(open(path+filename,"rb")) 
     for key in data:
-      print (data[key])
       r.set(key, data[key])
+    print (filename + " done")
 
+#generatePairs()
 saveToRedis()
