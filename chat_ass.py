@@ -11,7 +11,8 @@ from joblib import Parallel, delayed
 import spacy
 from operator import itemgetter
 import redis
-
+import random
+import time
 import re
 
 
@@ -48,20 +49,32 @@ class ChatAid():
 
 
   def query_sent(self, q_string):
+    print("Search similar words: Start")
+    TIME_SEARCH = time.time()
     sims = self.index[self.query2Vec(q_string)]  #將 query餵入 index 這個 model，他算出 query 與 那些回覆 的相似度
 
+    print("Search similar words: Done " + str(TIME_SEARCH-time.time()))
+    print ("Sorting: Start")
+    TIME_SORT = time.time()
     np_sort = np.argsort(sims) #照相似度排序
-    sims_top = np_sort[::-1][:50] #取前五十個像的
+    print("Sorting: Done " + str(TIME_SORT-time.time()))
+    sims_top = np_sort[::-1][:30] #取前五十個像的
     output_tup = []
+    print("Get Conversation: Start")
+    TIME_GET_CONVERSATION = time.time() 
     for sim in sims_top:
         #找到像的句子後，去找那句的下一個回覆，即是我們要推薦的
         #try:
-        key = self.huge_df.loc[sim,"text"]
-        answer = self.r.get(key)
-        if (answer != None):
-          output_tup.append((answer, self.huge_df.loc[sim,"number_to_end"]))
+        #key = self.huge_df.loc[sim,"text"]
+        if self.huge_df.loc[sim, "sender_gender"] != self.huge_df.loc[sim+1, "sender_gender"]:  
+          output_tup.append((self.huge_df.loc[sim+1, "text"], self.huge_df.loc[sim+1,"number_to_end"], self.huge_df.loc[sim, "text"]))
+        #answer = self.r.get(key)
+        #if (answer != None):
+    print("Get Converstaion: Done " + str(TIME_GET_CONVERSATION - time.time()))
 
-    return (sorted(output_tup , key=lambda item: -item[1])[:10])
+    print (sorted(output_tup , key=lambda item: -item[1])[:10])
+    return sorted(output_tup , key=lambda item: -item[1])[:10]
+    #return (random.sample(output_tup, 5))
 
 if __name__ == "__main__":
 
