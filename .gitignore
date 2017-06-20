@@ -1,3 +1,5 @@
+.DS_Store
+
 all_chat_vec_v3.index.index.npy
 chat_w2v_v2
 all_chat_v3_cut.csv
